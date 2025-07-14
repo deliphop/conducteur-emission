@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conducteur d'émission TV</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://apis.google.com/js/api.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: linear-gradient(135deg, #4A90C2 0%, #357ABD 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #4A90C2, #357ABD);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+        .logo {
+            width: 60px;
+            height: 60px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(74, 144, 194, 0.3);
+        }
+        .header-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .info-item label {
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 5px;
+        }
+        .info-item input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .config-section {
+            background: #f0f7ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #4A90C2;
+        }
+        .config-section h3 {
+            margin: 0 0 15px 0;
+            color: #357ABD;
+        }
+        .config-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .sync-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            display: none;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .github-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+            border-left: 4px solid #24292e;
+        }
+        .legend {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            margin-right: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        th {
+            background: linear-gradient(45deg, #4A90C2, #357ABD);
+            color: white;
+            padding: 15px 10px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #eee;
+            vertical-align: top;
+            font-size: 13px;
+        }
+        tr:hover {
+            background-color: #f8f9ff;
+        }
+        .timing { 
+            background-color: #e3f2fd; 
+            font-weight: bold;
+            text-align: center;
+            width: 80px;
+        }
+        .sequence { 
+            background-color: #f3e5f5;
+            font-weight: bold;
+            width: 120px;
+        }
+        .content { 
+            width: 250px;
+        }
+        .speaker { 
+            background-color: #e8f5e8;
+            text-align: center;
+            width: 100px;
+        }
+        .camera { 
+            background-color: #fff3e0;
+            text-align: center;
+            width: 80px;
+        }
+        .notes { 
+            background-color: #fafafa;
+            font-style: italic;
+        }
+        .download-section {
+            margin-top: 30px;
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .btn {
+            background: linear-gradient(45deg, #4A90C2, #357ABD);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 144, 194, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><img id="logoImg" class="logo" alt="Logo"> 📺 Conducteur d'Émission TV</h1>
+        
+        <div class="header-info">
+            <div class="info-item">
+                <label>Nom de l'émission :</label>
+                <input type="text" id="showName" placeholder="Ex: Talk Show du Dimanche">
+            </div>
+            <div class="info-item">
+                <label>Date :</label>
+                <input type="date" id="showDate">
+            </div>
+            <div class="info-item">
+                <label>Thème :</label>
+                <input type="text" id="theme" placeholder="Ex: Innovation technologique">
+            </div>
+            <div class="info-item">
+                <label>Présentateur :</label>
+                <input type="text" id="presenter" placeholder="Nom du présentateur">
+            </div>
+            <div class="info-item">
+                <label>Chroniqueur 1 :</label>
+                <input type="text" id="chrono1" placeholder="Nom chroniqueur 1">
+            </div>
+            <div class="info-item">
+                <label>Chroniqueur 2 :</label>
+                <input type="text" id="chrono2" placeholder="Nom chroniqueur 2">
+            </div>
+        </div>
+
+        <div class="config-section">
+            <h3>🔗 Synchronisation Google Sheets</h3>
+            <input type="text" id="scriptUrl" class="config-input" placeholder="URL de votre Google Apps Script (ex: https://script.google.com/macros/s/ABC.../exec)">
+            <div class="sync-buttons">
+                <button class="btn" onclick="loadFromSheets()">📥 Charger depuis Sheets</button>
+                <button class="btn" onclick="saveToSheets()">📤 Sauvegarder vers Sheets</button>
+                <button class="btn" onclick="createNewSheet()">➕ Créer nouveau conducteur</button>
+                <button class="btn" onclick="testConnection()">🔍 Tester connexion</button>
+            </div>
+            <div id="syncStatus" class="status"></div>
+        </div>
+
+        <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #4A90C2;">
+            <h3 style="margin: 0 0 10px 0; color: #357ABD;">📹 Configuration Caméras</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                <div><strong>CAM 1:</strong> Plan serré Présentateur</div>
+                <div><strong>CAM 2:</strong> Plan serré Chroniqueur 1</div>
+                <div><strong>CAM 3:</strong> Plan serré Chroniqueur 2</div>
+                <div><strong>CAM 4:</strong> Plan large plateau / Multi-cam</div>
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color timing"></div>
+                <span>Timing</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color sequence"></div>
+                <span>Séquence</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color content"></div>
+                <span>Contenu</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color speaker"></div>
+                <span>Intervenant</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color camera"></div>
+                <span>Caméra</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color notes"></div>
+                <span>Notes techniques</span>
+            </div>
+        </div>
+
+        <table id="conducteurTable">
+            <thead>
+                <tr>
+                    <th>Timing</th>
+                    <th>Durée</th>
+                    <th>Séquence</th>
+                    <th>Contenu / Action</th>
+                    <th>Intervenant</th>
+                    <th>Caméra</th>
+                    <th>Notes techniques</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <!-- Les données seront générées par JavaScript -->
+            </tbody>
+        </table>
+
+        <div class="download-section">
+            <p>Personnalisez les informations ci-dessus puis téléchargez votre conducteur</p>
+            <button class="btn" onclick="generateExcel()">📄 Télécharger Excel</button>
+            <button class="btn" onclick="addRow()">➕ Ajouter une ligne</button>
+            <button class="btn" onclick="resetTable()">🔄 Réinitialiser</button>
+            <button class="btn" onclick="saveLocally()">💾 Sauvegarder localement</button>
+        </div>
+
+        <div class="github-section">
+            <h3>🚀 Déploiement GitHub Pages</h3>
+            <p><strong>Instructions pour mettre ce conducteur sur GitHub :</strong></p>
+            <ol>
+                <li>Créer un nouveau repository GitHub public</li>
+                <li>Copier ce fichier HTML comme <code>index.html</code></li>
+                <li>Activer GitHub Pages dans Settings → Pages</li>
+                <li>Configurer l'API Google Sheets (voir documentation)</li>
+                <li>Partager le lien avec votre équipe !</li>
+            </ol>
+            <p><strong>URL du projet :</strong> <code>https://deliphop.github.io/conducteur-emission/</code></p>
+        </div>
+    </div>
+
+    <script>
+        // Données par défaut pour le conducteur
+        const defaultData = [
+            {timing: "00:00", duree: "0:30", sequence: "GÉNÉRIQUE", contenu: "Générique d'ouverture + jingle", intervenant: "OFF", camera: "CAM 4", notes: "Musique + logo + plan large plateau"},
+            {timing: "00:30", duree: "1:00", sequence: "PRÉSENTATION", contenu: "Présentation de l'émission et du thème", intervenant: "PRÉSENTATEUR", camera: "CAM 1", notes: "Plan serré présentateur"},
+            {timing: "01:30", duree: "0:30", sequence: "PRÉSENTATION", contenu: "Présentation des invités chroniqueurs", intervenant: "PRÉSENTATEUR", camera: "CAM 1", notes: "Plan serré présentateur"},
+            {timing: "02:00", duree: "5:00", sequence: "INTRODUCTION", contenu: "Introduction du sujet - Contextualisation", intervenant: "PRÉSENTATEUR", camera: "CAM 1", notes: "Plan serré présentateur + insert vidéo possible"},
+            {timing: "07:00", duree: "8:00", sequence: "CHRONIQUE 1", contenu: "Première analyse du thème", intervenant: "CHRONIQUEUR 1", camera: "CAM 2", notes: "Plan serré chroniqueur 1"},
+            {timing: "15:00", duree: "1:00", sequence: "TRANSITION", contenu: "Relance et transition vers chronique 2", intervenant: "PRÉSENTATEUR", camera: "CAM 1", notes: "Plan serré présentateur"},
+            {timing: "16:00", duree: "8:00", sequence: "CHRONIQUE 2", contenu: "Deuxième analyse - Angle différent", intervenant: "CHRONIQUEUR 2", camera: "CAM 3", notes: "Plan serré chroniqueur 2"},
+            {timing: "24:00", duree: "4:00", sequence: "DÉBAT", contenu: "Échange entre les trois intervenants", intervenant: "TOUS", camera: "CAM 4", notes: "Plan large - alternance CAM 1/2/3"},
+            {timing: "28:00", duree: "1:30", sequence: "CONCLUSION", contenu: "Synthèse et conclusion du présentateur", intervenant: "PRÉSENTATEUR", camera: "CAM 1", notes: "Plan serré présentateur"},
+            {timing: "29:30", duree: "0:30", sequence: "GÉNÉRIQUE", contenu: "Générique de fin + annonce prochaine émission", intervenant: "OFF", camera: "CAM 4", notes: "Fondu sur générique + plan large"}
+        ];
+
+        function generateTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            defaultData.forEach((row, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="timing" contenteditable="true">${row.timing}</td>
+                    <td contenteditable="true">${row.duree}</td>
+                    <td class="sequence" contenteditable="true">${row.sequence}</td>
+                    <td class="content" contenteditable="true">${row.contenu}</td>
+                    <td class="speaker" contenteditable="true">${row.intervenant}</td>
+                    <td class="camera" contenteditable="true">${row.camera}</td>
+                    <td class="notes" contenteditable="true">${row.notes}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function addRow() {
+            const tbody = document.getElementById('tableBody');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="timing" contenteditable="true">00:00</td>
+                <td contenteditable="true">1:00</td>
+                <td class="sequence" contenteditable="true">NOUVELLE SÉQUENCE</td>
+                <td class="content" contenteditable="true">Description du contenu</td>
+                <td class="speaker" contenteditable="true">INTERVENANT</td>
+                <td class="camera" contenteditable="true">CAM 1</td>
+                <td class="notes" contenteditable="true">Notes techniques</td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        function resetTable() {
+            generateTable();
+        }
+
+        function getTableData() {
+            const rows = document.querySelectorAll('#tableBody tr');
+            const data = [];
+            
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                data.push({
+                    'Timing': cells[0].textContent,
+                    'Durée': cells[1].textContent,
+                    'Séquence': cells[2].textContent,
+                    'Contenu / Action': cells[3].textContent,
+                    'Intervenant': cells[4].textContent,
+                    'Caméra': cells[5].textContent,
+                    'Notes techniques': cells[6].textContent
+                });
+            });
+            
+            return data;
+        }
+
+        // Fonctions Google Apps Script
+        function showStatus(message, isError = false) {
+            const status = document.getElementById('syncStatus');
+            status.textContent = message;
+            status.className = `status ${isError ? 'error' : 'success'}`;
+            status.style.display = 'block';
+            setTimeout(() => status.style.display = 'none', 5000);
+        }
+
+        async function testConnection() {
+            const scriptUrl = document.getElementById('scriptUrl').value;
+            if (!scriptUrl) {
+                showStatus('Veuillez entrer l\'URL de votre Google Apps Script', true);
+                return;
+            }
+
+            try {
+                showStatus('Test de connexion...');
+                const response = await fetch(`${scriptUrl}?action=ping`, {
+                    method: 'GET',
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    showStatus('✅ Connexion réussie ! Script opérationnel.');
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                showStatus('❌ Erreur de connexion. Vérifiez l\'URL et les permissions.', true);
+                console.error('Erreur test connexion:', error);
+            }
+        }
+
+        async function loadFromSheets() {
+            const scriptUrl = document.getElementById('scriptUrl').value;
+            if (!scriptUrl) {
+                showStatus('Veuillez entrer l\'URL de votre Google Apps Script', true);
+                return;
+            }
+
+            try {
+                showStatus('Chargement depuis Google Sheets...');
+                const response = await fetch(`${scriptUrl}?action=load`, {
+                    method: 'GET',
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                // Charger les métadonnées dans l'interface
+                if (data.metadata) {
+                    document.getElementById('showName').value = data.metadata.nom_de_lemission || '';
+                    document.getElementById('showDate').value = data.metadata.date || '';
+                    document.getElementById('theme').value = data.metadata.theme || '';
+                    document.getElementById('presenter').value = data.metadata.presentateur || '';
+                    document.getElementById('chrono1').value = data.metadata.chroniqueur_1 || '';
+                    document.getElementById('chrono2').value = data.metadata.chroniqueur_2 || '';
+                }
+
+                // Charger les données du conducteur
+                const tbody = document.getElementById('tableBody');
+                tbody.innerHTML = '';
+                
+                data.conducteur.forEach(row => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="timing" contenteditable="true">${row.timing}</td>
+                        <td contenteditable="true">${row.duree}</td>
+                        <td class="sequence" contenteditable="true">${row.sequence}</td>
+                        <td class="content" contenteditable="true">${row.contenu}</td>
+                        <td class="speaker" contenteditable="true">${row.intervenant}</td>
+                        <td class="camera" contenteditable="true">${row.camera}</td>
+                        <td class="notes" contenteditable="true">${row.notes}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                
+                showStatus(`✅ Conducteur chargé ! ${data.conducteur.length} séquences`);
+            } catch (error) {
+                showStatus('❌ Erreur lors du chargement: ' + error.message, true);
+                console.error('Erreur chargement:', error);
+            }
+        }
+
+        async function saveToSheets() {
+            const scriptUrl = document.getElementById('scriptUrl').value;
+            if (!scriptUrl) {
+                showStatus('Veuillez entrer l\'URL de votre Google Apps Script', true);
+                return;
+            }
+
+            try {
+                showStatus('Sauvegarde vers Google Sheets...');
+                
+                // Préparer les données
+                const conducteurData = getTableData();
+                const metadata = {
+                    nom_de_lemission: document.getElementById('showName').value,
+                    date: document.getElementById('showDate').value,
+                    theme: document.getElementById('theme').value,
+                    presentateur: document.getElementById('presenter').value,
+                    chroniqueur_1: document.getElementById('chrono1').value,
+                    chroniqueur_2: document.getElementById('chrono2').value
+                };
+
+                const payload = {
+                    action: 'save',
+                    conducteur: conducteurData.map(row => ({
+                        timing: row['Timing'],
+                        duree: row['Durée'],
+                        sequence: row['Séquence'],
+                        contenu: row['Contenu / Action'],
+                        intervenant: row['Intervenant'],
+                        camera: row['Caméra'],
+                        notes: row['Notes techniques']
+                    })),
+                    metadata: metadata
+                };
+
+                const response = await fetch(scriptUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'payload=' + encodeURIComponent(JSON.stringify(payload))
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                
+                if (result.error) {
+                    throw new Error(result.error);
+                }
+
+                showStatus(`✅ Sauvegarde réussie ! ${result.rowCount} séquences`);
+            } catch (error) {
+                showStatus('❌ Erreur lors de la sauvegarde: ' + error.message, true);
+                console.error('Erreur sauvegarde:', error);
+            }
+        }
+
+        async function createNewSheet() {
+            const scriptUrl = document.getElementById('scriptUrl').value;
+            if (!scriptUrl) {
+                showStatus('Veuillez entrer l\'URL de votre Google Apps Script', true);
+                return;
+            }
+
+            try {
+                showStatus('Création d\'un nouveau conducteur...');
+                
+                const response = await fetch(`${scriptUrl}?action=create`, {
+                    method: 'GET',
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                
+                if (result.error) {
+                    throw new Error(result.error);
+                }
+
+                showStatus('✅ Nouveau conducteur créé ! Chargement...');
+                
+                // Recharger les données
+                setTimeout(() => loadFromSheets(), 1000);
+                
+            } catch (error) {
+                showStatus('❌ Erreur lors de la création: ' + error.message, true);
+                console.error('Erreur création:', error);
+            }
+        }
+
+        function saveLocally() {
+            const showData = {
+                showName: document.getElementById('showName').value,
+                showDate: document.getElementById('showDate').value,
+                theme: document.getElementById('theme').value,
+                presenter: document.getElementById('presenter').value,
+                chrono1: document.getElementById('chrono1').value,
+                chrono2: document.getElementById('chrono2').value,
+                tableData: getTableData()
+            };
+            
+            const dataStr = JSON.stringify(showData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `conducteur_${showData.showName.replace(/\s+/g, '_')}_${showData.showDate}.json`;
+            a.click();
+            
+            showStatus('Conducteur sauvegardé localement !');
+        }
+
+        function generateExcel() {
+            // Récupérer les informations de l'en-tête
+            const showName = document.getElementById('showName').value || 'Mon Émission TV';
+            const showDate = document.getElementById('showDate').value || new Date().toISOString().split('T')[0];
+            const theme = document.getElementById('theme').value || 'Thème à définir';
+            const presenter = document.getElementById('presenter').value || 'Présentateur';
+            const chrono1 = document.getElementById('chrono1').value || 'Chroniqueur 1';
+            const chrono2 = document.getElementById('chrono2').value || 'Chroniqueur 2';
+
+            // Créer un nouveau classeur
+            const wb = XLSX.utils.book_new();
+
+            // Données d'en-tête
+            const headerData = [
+                ['CONDUCTEUR D\'ÉMISSION TV'],
+                [''],
+                ['Nom de l\'émission:', showName],
+                ['Date:', showDate],
+                ['Thème:', theme],
+                ['Présentateur:', presenter],
+                ['Chroniqueur 1:', chrono1],
+                ['Chroniqueur 2:', chrono2],
+                ['Durée totale:', '30 minutes'],
+                ['Configuration caméras:', 'CAM 1: Présentateur | CAM 2: Chroniqueur 1 | CAM 3: Chroniqueur 2 | CAM 4: Plan large'],
+                [''],
+                ['DÉROULÉ DE L\'ÉMISSION']
+            ];
+
+            // Données du tableau
+            const tableData = getTableData();
+            const tableHeaders = ['Timing', 'Durée', 'Séquence', 'Contenu / Action', 'Intervenant', 'Caméra', 'Notes techniques'];
+
+            // Combiner toutes les données
+            const allData = [
+                ...headerData,
+                [''],
+                tableHeaders,
+                ...tableData.map(row => Object.values(row))
+            ];
+
+            // Créer la feuille de calcul
+            const ws = XLSX.utils.aoa_to_sheet(allData);
+
+            // Définir les largeurs de colonnes
+            ws['!cols'] = [
+                {wch: 8},  // Timing
+                {wch: 8},  // Durée
+                {wch: 15}, // Séquence
+                {wch: 40}, // Contenu
+                {wch: 15}, // Intervenant
+                {wch: 8},  // Caméra
+                {wch: 30}  // Notes
+            ];
+
+            // Ajouter la feuille au classeur
+            XLSX.utils.book_append_sheet(wb, ws, 'Conducteur');
+
+            // Télécharger le fichier
+            const fileName = `Conducteur_${showName.replace(/\s+/g, '_')}_${showDate}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+        }
+
+        // Initialiser le tableau au chargement de la page
+        window.onload = async function() {
+            generateTable();
+            // Définir la date du jour par défaut
+            document.getElementById('showDate').value = new Date().toISOString().split('T')[0];
+            
+            // Charger le logo - essayer plusieurs noms possibles
+            const possibleNames = ['logo.png', 'image.png', 'uploaded_image.png', 'file.png'];
+            let logoLoaded = false;
+            
+            for (const fileName of possibleNames) {
+                try {
+                    const logoData = await window.fs.readFile(fileName);
+                    const blob = new Blob([logoData], { type: 'image/png' });
+                    const logoUrl = URL.createObjectURL(blob);
+                    document.getElementById('logoImg').src = logoUrl;
+                    logoLoaded = true;
+                    break;
+                } catch (error) {
+                    // Continuer avec le nom suivant
+                    continue;
+                }
+            }
+            
+            if (!logoLoaded) {
+                // Créer un logo par défaut si aucun fichier trouvé
+                const canvas = document.createElement('canvas');
+                canvas.width = 60;
+                canvas.height = 60;
+                const ctx = canvas.getContext('2d');
+                
+                // Dessiner un cercle bleu avec "bo" en blanc
+                ctx.fillStyle = '#4A90C2';
+                ctx.beginPath();
+                ctx.arc(30, 30, 30, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 20px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('bo', 30, 38);
+                
+                document.getElementById('logoImg').src = canvas.toDataURL();
+            }
+        };
+    </script>
+</body>
+</html>
